@@ -168,7 +168,7 @@ int LaneDetection::FS_driving_lane_detection(int flag_init) {
 	if (verbose_FS_lm) {
 		std::cout << "lm_detect > ";
 	}
-	lane_marking_detection(false);
+	lane_marking_detection(true);
 	
 	if (verbose_FS_lm) {
 		std::cout << "seed > ";

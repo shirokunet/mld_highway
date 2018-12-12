@@ -1,7 +1,7 @@
 #pragma warning(disable:4819)
 #pragma once
 #include <string>
-#include <opencv2\opencv.hpp>
+#include <opencv2/opencv.hpp>
 #include <iostream>
 #include <ctype.h>
 #include <math.h>
@@ -11,6 +11,15 @@
 #include <json/json.h>
 #include <fstream>
 
+#include <sstream>
+
+template <typename T>
+std::string ToString(T val)
+{
+    std::stringstream stream;
+    stream << val;
+    return stream.str();
+}
 
 void run_ld(std::string data_path, Json::Value& currQuery, std::ofstream& output_file){
 
@@ -46,7 +55,7 @@ void run_ld(std::string data_path, Json::Value& currQuery, std::ofstream& output
 	for (int n = 1; n<21; n++){
 
 		//Image Sourcing
-		std::string img_name = image_path + std::to_string(n) + ".jpg";
+		std::string img_name = image_path + ToString(n) + ".jpg";
 		cv::Mat img_src = cv::imread(img_name);
 		if (img_src.empty()) {
 			std::cout << " Fatal Error: no Input image: " << img_src << std::endl;
@@ -59,6 +68,7 @@ void run_ld(std::string data_path, Json::Value& currQuery, std::ofstream& output
 		if (loop_select == 1){
 			loop_select = ld->FS_driving_lane_detection(loop1_init);
 			loop1_init = 0;
+			ld->displaying();
 		}
 
 		// LOOP 2
@@ -76,8 +86,8 @@ void run_ld(std::string data_path, Json::Value& currQuery, std::ofstream& output
 
 		finish = clock();
 		processing_time = finish - start;
-		//std::cout << " processing time: " << (float)processing_time / (float)(CLOCKS_PER_SEC / 1000.f) << std::endl;
-		cv::waitKey(1);
+		std::cout << " processing time: " << (float)processing_time / (float)(CLOCKS_PER_SEC / 1000.f) << std::endl;
+		cv::waitKey(0);
 	}
 
 	ld->writingToOutputFile(currQuery, output_file, (float)processing_time / (float)(CLOCKS_PER_SEC / 1000.f));
@@ -89,7 +99,7 @@ void run_ld(std::string data_path, Json::Value& currQuery, std::ofstream& output
 }
 
 
-void main(){ 
+int main(){ 
 
 	bool bWrite = false;
 
@@ -108,8 +118,8 @@ void main(){
 	std::vector<Json::Value> data_input_jason;
 	Json::Value currVal;
 	Json::Reader reader;
-	std::ifstream filename_jason(data_file_name, std::ifstream::binary);
-	std::ofstream output_file(output_file_name);
+	std::ifstream filename_jason(data_file_name.c_str(), std::ifstream::binary);
+	std::ofstream output_file(output_file_name.c_str());
 	
 
 	if (!filename_jason.is_open()){
@@ -128,14 +138,14 @@ void main(){
 
 	for (int ii = 0; ii < data_input_jason.size(); ++ii){
 
-		std::ofstream output_file_tmp(output_file_name_tmp1);
+		std::ofstream output_file_tmp(output_file_name_tmp1.c_str());
 		run_ld(data_path, data_input_jason[ii], output_file_tmp);
 		output_file_tmp.close();
 		cv::waitKey(0);
 
 		// saving
 		if (bWrite) {
-			std::ifstream filename_tmp1(output_file_name_tmp1);
+			std::ifstream filename_tmp1(output_file_name_tmp1.c_str());
 			std::string cur_line;
 			while (std::getline(filename_tmp1, cur_line)) {
 				output_file << cur_line;
@@ -147,4 +157,5 @@ void main(){
 
 	output_file.close();
 
+	return 0;
 }
